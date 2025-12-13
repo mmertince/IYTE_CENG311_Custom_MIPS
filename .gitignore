@@ -1,0 +1,18 @@
+# --- ModelSim & QuestaSim Generated Files ---
+work/
+transcript
+vsim.wlf
+*.wlf
+*.mti
+*.mpf
+*.bak
+*.vl
+cov*/
+__pycache__/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Log Files ---
+*.log

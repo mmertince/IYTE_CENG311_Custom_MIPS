@@ -12,10 +12,11 @@ module stack_guard(
     output reg stack_overflow, //stack overflow flag
     output reg stack_underflow //stack underflow flag
 );
-
-    //Stack Pointer register index 
-    localparam[3:0] SP_REG = 4'd14; //according to hw instructions $sp is register 14
-
+    //STACK PARAMETERS
+    parameter SP_BASE  = 32'd40;  
+    parameter SP_LIMIT = 32'd32; 
+    parameter SP_REG = 4'd14;
+    
 
     //STACK GUARD LOGIC
     //SP IS 0 IF STACK IS EMPTY
@@ -35,13 +36,13 @@ module stack_guard(
             //CHECK FOR STACK UNDERFLOW
             //SP > 0 INDICATES UNDERFLOW
             if ($signed(next_sp) > $signed(32'd0)) begin
-                underflow = 1'b1;
+                stack_underflow = 1'b1;
             end
 
             //CHECK FOR STACK OVERFLOW
             //SP < -8 INDICATES OVERFLOW
             else if ($signed(next_sp) < $signed(-32'd8)) begin
-                overflow = 1'b1;
+                stack_overflow = 1'b1;
             end
         end
     end

@@ -61,7 +61,7 @@ module control_unit(
                     `FUNCT_NAND: alu_control = `ALU_NAND; //nand
                     `FUNCT_OR: alu_control = `ALU_OR; //or
                     `FUNCT_ADD: alu_control = `ALU_ADD; //add
-                    default: alu_control = 'ALU_ADD; //default case
+                    default: alu_control = `ALU_ADD; //default case
                 endcase
             end
 
@@ -125,13 +125,12 @@ module control_unit(
 
         //SAFETY CHECKS FOR STACK OVERFLOW AND UNDERFLOW
         //HW INSTRUCTION: IF OVERFLOW OR UNDERFLOW OCCURS PREVENT THE EXECUTION OF THE INSTRUCTION
-        /MAKE WRITE SIGNALS ZERO IF OVERFLOW OR UNDERFLOW OCCURS
+        //MAKE WRITE SIGNALS ZERO IF OVERFLOW OR UNDERFLOW OCCURS
         if (overflow || underflow) begin
             reg_write_enable = 1'b0; //prevent register write
             mem_write = 1'b0; //prevent memory write
-        end
+        end else begin
         //NO OVERFLOW OR UNDERFLOW OCCURRED SO PASS RAW SIGNALS
-        else begin
             reg_write_enable = raw_reg_write_enable;
             mem_write = raw_mem_write;
         end

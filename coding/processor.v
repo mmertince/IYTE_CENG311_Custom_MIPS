@@ -6,7 +6,14 @@
 
 module processor(
     input clk, //clock signal
-    input reset //reset signal
+    input reset, //reset signal
+    
+    //DEBUG OUTPUTS FOR MODELSIM WAVEFORM VIEWER
+    output [31:0] debug_pc, //program counter for waveform
+    output [31:0] debug_instruction, //instruction for waveform
+    output [31:0] debug_alu_result, //ALU result for waveform
+    output debug_overflow, //overflow flag for waveform
+    output debug_underflow //underflow flag for waveform
 );
 
     //DECLARATION OF WIRES AND REGISTERS
@@ -28,11 +35,12 @@ module processor(
     wire branch_eq; //branch if equal enable
     wire branch_lt; //branch if less than enable
     wire branch_eqi; //branch if equal immediate enable
+    wire branch_neq; //branch if not equal enable
     wire jump; //jump enable
     wire [3:0] alu_control; //ALU control signals
 
-    wire overflow; //overflow flag from stack guard
-    wire underflow; //underflow flag from stack guard
+    wire stack_overflow; //overflow flag from stack guard
+    wire stack_underflow; //underflow flag from stack guard
 
     wire [31:0] read_data1; //data from rs register
     wire [31:0] read_data2; //data from rt register
@@ -49,6 +57,12 @@ module processor(
     wire [31:0] sign_ext_imm; //16-bits to 32-bits (for normal I-Type)
     wire [31:0] sign_ext_imm_8;  //8-bits to 32-bits (for BEQI)
 
+    //DEBUG OUTPUT ASSIGNMENTS
+    assign debug_pc = pc; //expose pc for waveform viewer
+    assign debug_instruction = instruction; //expose instruction for waveform viewer
+    assign debug_alu_result = alu_result; //expose ALU result for waveform viewer
+    assign debug_overflow = stack_overflow; //expose overflow flag for waveform viewer
+    assign debug_underflow = stack_underflow; //expose underflow flag for waveform viewer
 
     //MODULE INSTANTIATIONS
 
@@ -56,7 +70,7 @@ module processor(
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             pc <= 32'd0; //reset pc to 0
-        else begin
+        end else begin
             pc <= pc_next; //update pc to next value
         end
     end 
@@ -82,11 +96,12 @@ module processor(
         .branch_eq(branch_eq),
         .branch_lt(branch_lt),
         .branch_eqi(branch_eqi),
+        .branch_neq(branch_neq),
         .jump(jump),
-        .alu_control(alu_control)
+        .alu_control(alu_control),
 
-        .overflow(overflow),
-        .underflow(underflow)
+        .overflow(stack_overflow),
+        .underflow(stack_underflow)
     );
 
     //REGISTER FILE
@@ -107,11 +122,23 @@ module processor(
         .read_data2(read_data2) //data from rt
     );
 
+    //DATA MEMORY
+    data_memory dm (
+        .clk(clk),
+        .rst(reset),
+        .mem_write_enable(mem_write),
+        .mem_read_enable(mem_read),
+        .address(alu_result),
+        .write_data(read_data2),
+        .read_data(memory_read_data)
+    );
+
     assign sign_ext_imm = {{16{instruction[15]}}, instruction[15:0]}; //16-bits to 32-bits sign extension
     assign sign_ext_imm_8 = {{24{instruction[15]}}, instruction[15:8]}; //8-bits to 32-bits sign extension
 
     assign alu_operand_b = alu_src ? sign_ext_imm : read_data2; //second ALU operand based on alu_src immediate or register
 
+    //ALU
     alu alu_unit (
         .a(read_data1), //rs data
         .b(alu_operand_b), //rt data or immediate
@@ -126,13 +153,11 @@ module processor(
     
     //STACK GUARD UNIT
     stack_guard sg (
-        .clk(clk),
-        .rst(reset),
-        .mem_write(mem_write), //memory write enable
-        .address(alu_result), //memory address
-        .mem_read(mem_read), //memory read enable
-        .write_data(read_data2), //data to write into memory
-        .read_data(memory_read_data), //data read from memory
+        .next_sp(alu_result),
+        .reg_write_enable(reg_write_enable),
+        .write_reg(write_reg),
+        .stack_overflow(stack_overflow),
+        .stack_underflow(stack_underflow)
     );
 
     //NEXT PC LOGIC

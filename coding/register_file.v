@@ -17,6 +17,11 @@ module register_file(
     //16 x 32-bit register array
     reg [31:0] registers [15:0];
 
+    //Pre-initialize registers from file at time 0
+    initial begin
+        $readmemb("./simulation/register_file.dat", registers);
+    end
+
     //ASYNCHRONOUS READ OPERATION
     assign read_data1 = registers[read_reg1];
     assign read_data2 = registers[read_reg2];
@@ -24,8 +29,8 @@ module register_file(
     //INITIALIZE FROM .dat FILE ON RESET
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            //TABLE 2 INITIAL VALUES
-            $readmemb("simulation/register_file.dat", registers);
+            //TABLE 2 INITIAL VALUES - reload from file on reset
+            $readmemb("./simulation/register_file.dat", registers);
         end 
         else if (reg_write_enable) begin
             if (write_reg != 0) begin //prevent writing to $0 register

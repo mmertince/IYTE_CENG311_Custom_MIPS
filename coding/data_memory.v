@@ -16,9 +16,9 @@ module data_memory(
     reg [7:0] memory [0:63];
     integer i;
 
-    // Load memory from .dat file at simulation start and on reset
+    // Load memory from .dat file at simulation start
     initial begin
-        $readmemb("data_memory.dat", memory);
+        $readmemb("simulation/data_memory.dat", memory);
     end
 
     always @(posedge clk or posedge rst) begin

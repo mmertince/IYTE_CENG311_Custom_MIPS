@@ -1,19 +1,32 @@
+// Byte order in .dat: each instruction uses 4 lines = 4 bytes
+// byte0: opcode[31:24]
+// byte1: {rs[23:20], rt[19:16]} (upper nibble = rs, lower = rt)
+// byte2: R-type -> {rd[15:12], shamt[11:8]} | I/B-I -> imm[15:8]
+// byte3: R-type -> {shamt[7:6], funct[5:0]} | I/B-I -> imm/offset[7:0]
+// BEQI compares rs against immediate[7:0]; branches to target using PC-relative offset:
+//   target = (PC + 4) + signext(offset[7:0]) * 4
+// J-type (opcode 0xEE): bytes1–3 hold 24-bit word address (target >> 2)
+
+// 0: addi $s1, $s0, 10
 01101100  // addi opcode (108)
-00100010  // $s1=2, $s0=1
-00000000  // unused
-00001010  // imm=10
+00010010  // rs=$s0(1), rt=$s1(2)
+00000000  // imm[15:8] = 0
+00001010  // imm[7:0]  = 10
 
-01100110  // sll opcode (102)
-00110100  // $s2=3, $s3=4
-00000000  // shamt=2
-00000010  // funct=1 (SLL)
+// 4: sll $s2, $s3, 2
+01100110  // R-type opcode (102)
+01000000  // rs=$s3(4), rt=0 (ignored)
+00110000  // rd=$s2(3), shamt[11:8]=0
+10000001  // shamt[7:6]=2, funct=1 (SLL)
 
-01100110  // nand opcode (102)
-01010100  // $s4=5, $s2=3, $s3=4
-00000000  // unused
-00000011  // funct=3 (NAND)
+// 8: nand $s4, $s2, $s3
+01100110  // R-type opcode (102)
+00110100  // rs=$s2(3), rt=$s3(4)
+01010000  // rd=$s4(5), shamt[11:8]=0
+00000011  // shamt[7:6]=0, funct=3 (NAND)
 
-01100111  // subi opcode (107)
-00100010  // $s1=2, $s1=2
-00000000  // unused
-00000001  // imm=1
+// 12: subi $s1, $s1, 1
+01101011  // subi opcode (107)
+00100010  // rs=$s1(2), rt=$s1(2)
+00000000  // imm[15:8] = 0
+00000001  // imm[7:0]  = 1

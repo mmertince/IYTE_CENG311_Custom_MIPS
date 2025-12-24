@@ -1,34 +1,51 @@
-01100101  // lw opcode (103)
-10001110  // $t2=8, $sp=14
-00000000
-00000000
+// Byte order in .dat: each instruction uses 4 lines = 4 bytes
+// byte0: opcode[31:24]
+// byte1: {rs[23:20], rt[19:16]} (upper nibble = rs, lower = rt)
+// byte2: R-type -> {rd[15:12], shamt[11:8]} | I/B-I -> imm[15:8]
+// byte3: R-type -> {shamt[7:6], funct[5:0]} | I/B-I -> imm/offset[7:0]
+// BEQI compares rs against immediate[7:0]; branches to target using PC-relative offset:
+//   target = (PC + 4) + signext(offset[7:0]) * 4
+// J-type (opcode 0xEE): bytes1–3 hold 24-bit word address (target >> 2)
 
+// START:
+// 0: lw $t2, 0($sp) - needs offset 40 for physical address
+01100111  // lw opcode (103)
+11101000  // rs=$sp(14), rt=$t2(8)
+00000000  // offset MSB
+00101000  // offset = 40 
+
+// 4: addi $sp, $sp, 4 (POP)
 01101100  // addi opcode (108)
-11101110  // $sp=14, $sp=14
-00000000
-00000100
+11101110  // rs=$sp(14), rt=$sp(14)
+00000000  // sign extended +4
+00000100  // sign extended +4
 
-01100101  // lw opcode (103)
-01111110  // $t1=7, $sp=14
-00000000
-00000000
+// 8: lw $t1, 0($sp)
+01100111  // lw opcode (103)
+11100111  // rs=$sp(14), rt=$t1(7)
+00000000  // offset MSB
+00101000  // offset = 40
 
-01100101  // lw opcode (103)
-11101110  // $sp=14, $sp=14
-00000000
-00000100
+// 12: lw $sp, 4($sp) 
+01100111  // lw opcode (103)
+11101110  // rs=$sp(14), rt=$sp(14)
+00000000  // offset MSB
+00101100  // offset = 44 (40 + 4)
 
-01100101  // lw opcode (103)
-01101110  // $t0=6, $sp=14
-00000000
-00000000
+// 16: lw $t0, 0($sp) - needs offset 40
+01100111  // lw opcode (103)
+11100110  // rs=$sp(14), rt=$t0(6)
+00000000  // offset MSB
+00101000  // offset = 40
 
+// 20: beqi $t1, 1, START
 01101101  // beqi opcode (109)
-01110001  // $t1=7, imm=1
-11111111  // offset to START (PC=20, START=0, offset=-5, 0xFFFFFFFB)
-11111011
+01110000  // rs=$t1(7), rt=0 (ignored)
+00000001  // imm = 1
+11111010  // sign extended offset = -6 (-6 * 4 + 24 = 0)
 
-01100110  // sll opcode (102)
-01001100  // $s3=4, $s2=3
-00000000
-00000010
+// 24: sll $s3, $s2, 2
+01100110  // R-type opcode (102)
+00110000  // rs=$s2(3), rt=0
+01000000  // rd=$s3(4), shamt[5:2]=0
+10000001  // shamt[1:0]=2, funct=1 (SLL)

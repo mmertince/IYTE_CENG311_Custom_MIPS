@@ -12,7 +12,7 @@ module instruction_memory(
 
     //download instructions from external file into instruction memory
     initial begin
-        $readmemb("simulation/instruction_memory3.dat", memory);
+        $readmemb("simulation/instruction_memory5.dat", memory);
     end
 
     //big endian instruction fetch

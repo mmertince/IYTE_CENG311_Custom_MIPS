@@ -61,6 +61,6 @@ module tb_processor;
         $display("--------------------------------------------------");
         $display("Simulation is Completed.");
         $display("--------------------------------------------------");
-        $stop; //stop simulation
+        $finish; //finish and exit simulation
     end
 endmodule

@@ -1,3 +1,10 @@
+// 64 bytes total (addresses 0..63), listed MSB→LSB per 32-bit word.
+// Each 32-bit word occupies 4 consecutive bytes: memory[i..i+3].
+// Example: memory[0..3] form the first word; memory[0] is the MSB, memory[3] is the LSB.
+// Stack management (per spec): sp starts at 0; base address spba = 40; capacity spl = 2 words.
+// Physical stack addresses = spba + sp; top two words at bytes 32..39 (first), 36..39 (second).
+// This file seeds initial data used by IB4/IB5 stack operations.
+
 00000000 // memory[0]   (32'd1, MSB)
 00000000 // memory[1]
 00000000 // memory[2]
